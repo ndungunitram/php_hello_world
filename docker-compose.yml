@@ -1,0 +1,40 @@
+services:
+  web:
+    build: .  # Build the Docker image from the Dockerfile in the current directory
+    ports:
+      - "80:80"  # Expose port 80 of the container to port 80 on the host
+    volumes:
+      - ./src:/var/www/html  # Mount the local src directory to the container's /var/www/html directory
+    depends_on:
+      - db  # Ensure that the db service is started before the web service
+    networks:
+      - app_network  # Connect to a custom network for isolation
+
+  db:
+    image: mysql:5.7  # Use the official MySQL 5.7 image
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}  # Use environment variables for sensitive information
+      MYSQL_DATABASE: ${MYSQL_DATABASE}  # Define the database to be created
+      MYSQL_USER: ${MYSQL_USER}  # Define a user for the database
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}  # Define the password for the database user
+    ports:
+      - "3306:3306"  # Expose port 3306 of the container to port 3306 on the host
+    volumes:
+      - mysql_data:/var/lib/mysql  # Persist MySQL data across container restarts
+    networks:
+      - app_network  # Connect to a custom network for isolation
+
+  adminer:
+    image: adminer  # Use the official Adminer image for database management
+    restart: always  # Restart the container automatically if it crashes
+    ports:
+      - 127.0.0.1:8080:8080  # Bind Adminer to localhost to prevent external access
+    networks:
+      - app_network  # Connect to a custom network for isolation
+
+volumes:
+  mysql_data:  # Define a named volume for MySQL data persistence
+
+networks:
+  app_network:
+    driver: bridge  # Use the bridge network driver for container communication
